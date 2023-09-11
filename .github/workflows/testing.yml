@@ -35,14 +35,10 @@ jobs:
     - name: CI Tests
       run: |
         git describe
-        misc/version.sh
         docker images
         ls -ahl /tmp/
         du -hsc /tmp/ || true
         du -hsc ~
-        $RUN sudo chown ubuntu:ubuntu -R /anklang/  # gh-runner $UID != 1000
+        $RUN sudo chown ubuntu:ubuntu -R /anklang/   # Fix $UID (gh-runner $UID != 1000)
         $RUN git describe
-        $RUN misc/version.sh
-
-    - name: Cleanup
-      run: $RUN sudo chown `id -u`:`id -g` -R /anklang/
+        $RUN sudo chown `id -u`:`id -g` -R /anklang/ # Cleanup $UID
