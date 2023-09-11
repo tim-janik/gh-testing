@@ -40,7 +40,7 @@ jobs:
       run: |
         git describe
         docker images
-        ls -ahl /tmp/
+        ls -al /tmp/
         du -hsc /tmp/ || true
         du -hsc ~
         $RUN sudo chown ubuntu:ubuntu -R /anklang/   # Fix $UID (gh-runner $UID != 1000)
