@@ -23,7 +23,7 @@ jobs:
     - uses: actions/cache@v3
       with:
         path: /tmp/acache
-        key: cifocal-2-${{hashFiles ('misc/Dockerfile.focal')}}
+        key: cifocal-${{hashFiles ('misc/Dockerfile.focal')}}
     - name: Docker Build cifocal
       run: |
         docker buildx create --use --driver=docker-container # multi-platform, exports cache, needs --load
