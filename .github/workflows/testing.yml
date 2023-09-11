@@ -23,7 +23,7 @@ jobs:
     - uses: actions/cache@v3
       with:
         path: /tmp/acache
-        key: cifocal-dockercontainer-${{hashFiles ('misc/Dockerfile.focal')}}
+        key: cifocal-buildx-dockercontainer-${{hashFiles ('misc/Dockerfile.focal')}}
       id: acache
     - uses: docker/setup-buildx-action@v2.10.0
     - run: docker buildx create --use --driver=docker-container # multi-platform, exports cache, needs --load
@@ -31,7 +31,7 @@ jobs:
       if: ${{ steps.acache.outputs.cache-hit == 'true' }}
       run: test ! -r /tmp/acache/cifocal.tar || docker load -i /tmp/acache/cifocal.tar
     - name: Docker Build cifocal
-      run: docker build -t cifocal:latest -f misc/Dockerfile.focal misc
+      run: docker buildx build -t cifocal:latest -f misc/Dockerfile.focal misc
     - name: Docker Save cifocal
       if: ${{ steps.acache.outputs.cache-hit != 'true' }}
       run: mkdir -p /tmp/acache && docker save cifocal:latest -o /tmp/acache/cifocal.tar
