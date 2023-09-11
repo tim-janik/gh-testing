@@ -23,7 +23,7 @@ jobs:
     - uses: actions/cache@v3
       with:
         path: /tmp/acache
-        key: cifocal-${{hashFiles ('misc/Dockerfile.focal')}}
+        key: cifocal-buildx-${{hashFiles ('misc/Dockerfile.focal')}}
       id: acache
     - uses: docker/setup-buildx-action@v2.10.0
     - name: Docker Load cifocal
