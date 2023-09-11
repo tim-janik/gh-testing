@@ -21,7 +21,9 @@ jobs:
     - run: git fetch --unshallow && git fetch -f --tags
 
     - uses: actions/cache@v3
-      with: { path: /tmp/acache, key: "hashFiles('misc/Dockerfile.focal')" }
+      with:
+        path: /tmp/acache
+        key: ${{hashFiles ('misc/Dockerfile.focal')}}
       id: acache
     - name: Docker Load cifocal
       if: ${{ steps.acache.outputs.cache-hit == 'true' }}
