@@ -1,0 +1,48 @@
+# This Source Code Form is licensed MPL-2.0: http://mozilla.org/MPL/2.0
+
+# Linting: xclip -sel c <.github/workflows/testing.yml # https://rhysd.github.io/actionlint/
+
+on:
+  push:
+    branches: ['master', 'trunk', 'wip/**']
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+
+  Focal-CI:
+    runs-on: ubuntu-latest
+    env: # INTERACTIVE: docker run -i --cap-add SYS_PTRACE -v $PWD:/anklang ...
+      RUN: docker run -v /home/runner/work/gh-testing/gh-testing:/anklang -w /anklang/ -t --rm cifocal
+      CITAG: cifocal:latest
+    steps:
+    # Checkout and fix actions/checkout messing up annotation of the fetched tag: actions/checkout#290
+    - uses: actions/checkout@v4
+    - run: git fetch --unshallow && git fetch -f --tags
+
+    - uses: actions/cache@v3
+      with: { path: /tmp/acache, key: "hashFiles('misc/Dockerfile.focal')" }
+      id: acache
+    - name: Docker Load cifocal
+      if: ${{ steps.acache.outputs.cache-hit == 'true' }}
+      run: test ! -r /tmp/acache/cifocal.tar || docker load -i /tmp/acache/cifocal.tar
+    - name: Docker Build cifocal
+      run: docker build -t cifocal:latest -f misc/Dockerfile.focal misc
+    - name: Docker Save cifocal
+      if: ${{ steps.acache.outputs.cache-hit != 'true' }}
+      run: mkdir -p /tmp/acache && docker save cifocal:latest -o /tmp/acache/cifocal.tar
+
+    - name: CI Tests
+      run: |
+        git describe
+        misc/version.sh
+        docker images
+        ls -ahl /tmp/
+        du -hsc /tmp/ || true
+        du -hsc ~
+        $RUN sudo chown ubuntu:ubuntu -R /anklang/  # gh-runner $UID != 1000
+        $RUN git describe
+        $RUN misc/version.sh
+
+    - name: Cleanup
+      run: $RUN sudo chown `id -u`:`id -g` -R /anklang/
