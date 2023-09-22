@@ -22,7 +22,7 @@ jobs:
 
     - run: mkdir -p assets/ && date >assets/a && date >assets/b && date >assets/c
     - uses: actions/upload-artifact@v3
-      with: { name: assets, path: assets/ }
+      with: { name: assets, path: assets/* }
 
     # Use either cache-from or cache-to, so buildx cannot mess up good caches
     - uses: actions/cache@v3
