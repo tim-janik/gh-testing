@@ -21,7 +21,7 @@ jobs:
     - run: git fetch --unshallow && git fetch -f --tags
 
     - run: mkdir -p assets/ && date >assets/a && date >assets/b && date >assets/c && tar cf assets/t.tar assets/[abc]
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v3.1.3
       with: { name: dist-tarball, path: assets/*.tar* }
     - uses: actions/upload-artifact@v3
       with: { name: assets, path: assets/* }
