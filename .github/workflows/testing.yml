@@ -12,30 +12,24 @@ jobs:
 
   Focal-CI:
     runs-on: ubuntu-latest
-    env: # INTERACTIVE: docker run -i --cap-add SYS_PTRACE -v $PWD:/anklang ...
-      RUN: docker run -v /home/runner/work/gh-testing/gh-testing:/anklang -w /anklang/ -t --rm cifocal
-      CITAG: cifocal:latest
+    env: { CICACHE: "/tmp/cicache", CITAG: "focal" }
     steps:
-    # Checkout and fix actions/checkout messing up annotation of the fetched tag: actions/checkout#290
     - uses: actions/checkout@v4
-    - run: git fetch --unshallow && git fetch -f --tags
-
-    - run: mkdir -p assets/ && date >assets/a && date >assets/b && date >assets/c && tar cf assets/t.tar assets/[abc]
-    - uses: actions/upload-artifact@v3.1.3
-      with: { name: dist-tarball, path: assets/*.tar* }
-    - uses: actions/upload-artifact@v3
-      with: { name: assets, path: assets/* }
-
-    # Use either cache-from or cache-to, so buildx cannot mess up good caches
+      with: { fetch-depth: 0 }
+    - run: git fetch -f --tags # Fix actions/checkout annotated tag mess: actions/checkout#290
     - uses: actions/cache@v3
-      with:
-        key: cifocal-${{hashFiles ('misc/Dockerfile.focal')}}
-        path: /tmp/acache
-    - name: Docker Build cifocal
+      with: { path: "/tmp/cicache", key: "cifocal-${{hashFiles ('misc/Dockerfile.focal')}}" }
+    - name: 'Prepare Docker Image'
       run: |
-        docker buildx create --use --driver=docker-container # multi-platform, exports cache, needs --load
-        test -r /tmp/acache/index.json && CACHETYPE=--cache-from=type=local,src=/tmp/acache || CACHETYPE=--cache-to=type=local,mode=max,dest=/tmp/acache
-        time docker buildx build $CACHETYPE --load -t cifocal:latest -f misc/Dockerfile.focal misc
+        : # Use cache-from XOR cache-to, so buildx cannot mess up good caches
+        test -r "$CICACHE/index.json" &&
+          CACHETYPE="--cache-from=type=local,src=$CICACHE" ||
+          CACHETYPE="--cache-to=type=local,mode=max,compression=zstd,dest=$CICACHE"
+        docker buildx create   --name cirunsh$$ --driver=docker-container
+        docker buildx build --builder cirunsh$$ $CACHETYPE --load -t cirun:$CITAG -f misc/Dockerfile.$CITAG misc/
+        docker buildx rm    --builder cirunsh$$
+        docker run -t --rm -v $PWD:/srv -w /srv cirun:$CITAG \
+                 misc/version.sh
 
     - name: CI Tests
       run: |
