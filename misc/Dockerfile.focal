@@ -7,14 +7,12 @@ ENV DEBIAN_FRONTEND noninteractive
 # Use BASH(1) as shell, affects the RUN commands below
 RUN ln -sf bash /bin/sh && ls -al /bin/sh
 
-# Upgrade packages, install dependencies, clean up to shrink Docker image
-# Add libXss.so, libgtk-3-0 for Electron
-RUN apt-get update \
-  && apt-get -y upgrade \
-  && apt-get install -y \
-	     sudo build-essential curl cmake libglib2.0-dev \
-	     build-essential pkg-config git curl ccache curl unzip gawk g++ \
-  && apt-get clean
+# Upgrade packages, clean up to shrink Docker image
+RUN \
+  --mount=type=cache,target=/var/cache/apt \
+  apt-get update && apt-get -y upgrade \
+  && apt-get install -y sudo git \
+  && apt-get autoremove -y && apt-get clean
 
 # Become non-root
 RUN groupadd --gid 1000 ubuntu \
@@ -22,5 +20,5 @@ RUN groupadd --gid 1000 ubuntu \
   && echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu
 USER ubuntu
 
-# docker build -f misc/Dockerfile.focal -t anklang-focal misc/
-# docker run -ti --rm -v $PWD:/anklang -w /anklang anklang-focal
+# docker build -t cirun:focal -f misc/Dockerfile.focal misc
+# docker run -ti --rm -v $PWD:/srv -w /srv cirun:focal
