@@ -21,4 +21,4 @@ RUN groupadd --gid 1000 ubuntu \
 USER ubuntu
 
 # docker build -t cirun:focal -f misc/Dockerfile.focal misc
-# docker run -ti --rm -v $PWD:/srv -w /srv cirun:focal
+# docker run -ti --rm -v $PWD:/cirun -w /cirun cirun:focal
