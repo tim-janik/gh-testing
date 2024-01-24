@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# This Source Code Form is licensed MPL-2.0: http://mozilla.org/MPL/2.0
+set -Eeuo pipefail
+
+SCRIPTNAME=${0##*/} && die() { [ -z "$*" ] || echo "$SCRIPTNAME: $*" >&2; exit 127 ; }
+ABSPATHSCRIPT=`readlink -f "$0"`&& ABSDIR=`readlink -f "${ABSPATHSCRIPT%/*}"`
+
+help() {
+  echo "Usage: $0 [OPTIONS] [command…]"
+  echo 'Build docker image cirun:$CITAG and run command under mountpoint /cirun/.'
+  echo 'Options:'
+  echo '  -B              Force docker build even if tag exists'
+  echo '  -C DIR          Change to DIR before performing any operations'
+  echo '  -u ID           Run `chown ID:ID` on \$PWD before docker run'
+  echo '  -x              Enable `set -x` to echo all commands before execution'
+  echo 'Environemt variables:'
+  echo '  CITAG=<tag>     Build image cirun:<tag> from Dockerfile.<tag>'
+  echo '  CICACHE=<dir>   Optional directory to use as docker image cache'
+  exit 0
+}
+
+# Parse OPTIONS
+CHOWNID=
+FORCE_BUILD=false
+test $# -eq 0 && help
+while test $# -ne 0 ; do
+  case "$1" in \
+    -C)			shift ; mkdir -p "$1" && echo "cd $1" >&2 && cd "$1" ;;
+    -B)			FORCE_BUILD=true ;;
+    -h|--help)		help ;;
+    -u)			shift; CHOWNID="$1" ;;
+    -x)			set -x ;;
+    *)			break ;;
+  esac
+  shift
+done
+
+# Check for existing docker image
+if $FORCE_BUILD || ! docker image inspect --format=1 cirun:focal >/dev/null 2>&1; then
+  # Utilize $CICACHE when present
+  CACHETYPE=
+  if test -n "${CICACHE:-}" ; then
+    # Use cache-from XOR cache-to, so buildx cannot mess up good caches
+    test -r "$CICACHE/index.json" &&
+      CACHETYPE="--cache-from=type=local,src=$CICACHE" ||
+	CACHETYPE="--cache-to=type=local,mode=max,compression=zstd,dest=$CICACHE"
+  fi
+  # Require buildx backend
+  docker buildx >/dev/null 2>&1 || die "missing docker-buildx-plugin"
+  # Build image and cleanup temporary driver
+  ( set -x
+    docker buildx create   --name cirunsh$$ --driver=docker-container
+    docker buildx build --builder cirunsh$$ $CACHETYPE --load -t cirun:$CITAG -f "$ABSDIR/Dockerfile.$CITAG" "$ABSDIR/"
+    docker buildx rm    --builder cirunsh$$
+  )
+fi
+
+# Sense interactive TTY support, prepare $RUN
+tty -s && INTERACTIVE=-i || INTERACTIVE=
+RUN="docker run $INTERACTIVE -t --rm -v $PWD:/cirun -w /cirun cirun:$CITAG"
+
+# Change ownership, needed if the caller of this script has $UID different from the Dockerfile USER
+test -z "$CHOWNID" || {
+  $RUN sudo chown $CHOWNID:$CHOWNID -R /cirun/
+  trap "$RUN sudo chown `id -u`:`id -g` -R /cirun/" 0 HUP INT QUIT TRAP USR1 PIPE TERM ERR EXIT
+}
+
+( set -x
+  $RUN "$@"
+)
+
+# Clear exit code
+exit 0
