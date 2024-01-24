@@ -17,8 +17,7 @@ jobs:
     - uses: actions/checkout@v4
       with: { fetch-depth: 0 }
     - run: |
-        : # Fix actions/checkout annotated tag mess: actions/checkout#290
-        git fetch -f --tags
+        git fetch -f --tags # Fix actions/checkout annotated tag mess; actions/checkout#290
         git clone --recurse-submodules "$CIGIT" .
     - uses: actions/cache@v3
       with: { path: "/tmp/cicache", key: "cifocal-${{hashFiles ('misc/Dockerfile.focal')}}" }
