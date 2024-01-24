@@ -16,28 +16,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with: { fetch-depth: 0 }
-    - run: git fetch -f --tags # Fix actions/checkout annotated tag mess: actions/checkout#290
+    - run: |
+        git fetch -f --tags # Fix actions/checkout annotated tag mess: actions/checkout#290
+        git clone --recurse-submodules "$CIGIT" .
     - uses: actions/cache@v3
       with: { path: "/tmp/cicache", key: "cifocal-${{hashFiles ('misc/Dockerfile.focal')}}" }
     - name: 'Prepare Docker Image'
       run: |
-        : # Use cache-from XOR cache-to, so buildx cannot mess up good caches
-        test -r "$CICACHE/index.json" &&
-          CACHETYPE="--cache-from=type=local,src=$CICACHE" ||
-          CACHETYPE="--cache-to=type=local,mode=max,compression=zstd,dest=$CICACHE"
-        docker buildx create   --name cirunsh$$ --driver=docker-container
-        docker buildx build --builder cirunsh$$ $CACHETYPE --load -t cirun:$CITAG -f misc/Dockerfile.$CITAG misc/
-        docker buildx rm    --builder cirunsh$$
-        docker run -t --rm -v $PWD:/srv -w /srv cirun:$CITAG \
-                 misc/version.sh
+        misc/cirun -u 1000 misc/version.sh
 
     - name: CI Tests
       run: |
         git describe
         docker images
-        ls -al /tmp/
-        du -hsc /tmp/ || true
+        ls -al $CICACHE
+        du -hsc $CICACHE || true
         du -hsc ~
-        $RUN sudo chown ubuntu:ubuntu -R /anklang/   # Fix $UID (gh-runner $UID != 1000)
-        $RUN git describe
-        $RUN sudo chown `id -u`:`id -g` -R /anklang/ # Cleanup $UID
