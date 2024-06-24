@@ -10,6 +10,10 @@ on:
 
 jobs:
 
+  Whoami:
+    runs-on: ubuntu-latest
+    steps:
+    - run: id && cat /etc/passwd /etc/group
 
   Focal-CI:
     runs-on: ubuntu-latest
