@@ -15,14 +15,22 @@ jobs:
     runs-on: ubuntu-latest
     container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest' }
     steps:
+    - run: cat /etc/passwd
+    - run: env
+    - run: id
+    - run: echo 'passwd home:' $(env -i bash -c 'echo ~')
+    - run: echo HOME=$HOME
+    - run: echo '~:' ~
     - run: |
-        id
-        echo HOME=$HOME
-        echo '~'=$(env -i bash -c 'echo ~')
-        cat /etc/passwd
         sudo chown -R `id -u`:`id -g` . ~	;# /github/home - actions/runner/issues/863
         export HOME=$(env -i bash -c 'echo ~') && echo HOME=$HOME | sudo tee -a $GITHUB_ENV
-        test ! -d /__w/_temp/ || sudo chmod -R 0777 /__w/_temp/	;# needed for GitHub cache action
-        ls -al /__w /github /home ~
-    - run: id && pwd && env && ls -al . && ls -al ~
+        ! [[ $RUNNER_TEMP =~ _ ]] || sudo chmod -R 0777 $RUNNER_TEMP	;# needed for GitHub cache action
+        echo HOME=$HOME
+        echo '~:' ~
+    - run: echo HOME=$HOME
+    - run: echo '~:' ~
+    - run: ls -al /home
+    - run: ls -al ~
+    - run: ls -al $RUNNER_TEMP
+    - run: id && pwd && ls -ald . ~ $HOME $RUNNER_TEMP
     - { uses: actions/checkout@v4.1.1,  with: { fetch-depth: 0 } } # Fix actions/checkout#290
