@@ -21,7 +21,9 @@ jobs:
         id
         pwd
         ls -ald .
-        UGID=$(stat -c %u:%g .) && sudo usermod -o -u "${UGID%:*}" `id -nu` && sudo groupmod -o -g "${UGID#*:}" `id -ng`
+        cat /etc/passwd
+        cat /etc/group
+        UGID=$(stat -c %u:%g .) && sudo groupmod -o -g "${UGID#*:}" `id -ng` && sudo usermod -o -u "${UGID%:*}" `id -nu`
         id
         echo HOME=$HOME
         ls -ald .
