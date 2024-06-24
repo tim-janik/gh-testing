@@ -19,4 +19,8 @@ jobs:
     - run: cd && pwd && env && ls -al
     - run: ls -al /home/
     - run: ls -al /home/*
+    - run: |
+        export HOME=$(env -i bash -c 'echo ~') # Fix https://github.com/actions/runner/issues/863
+    - run: cd && pwd && env && ls -al
+    - run: mkdir cibuild && cd cibuild
     - { uses: actions/checkout@v4.1.1,  with: { fetch-depth: 0 } } # Fix actions/checkout#290
