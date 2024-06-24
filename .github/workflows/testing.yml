@@ -13,7 +13,7 @@ jobs:
 
   Focal-CI:
     runs-on: ubuntu-latest
-    container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest' }
+    container: { image: 'ubuntu:22.04' }
     steps:
     - name: 'Setup $HOME and $PWD'
       run: |
