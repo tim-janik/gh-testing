@@ -13,12 +13,12 @@ jobs:
 
   Focal-CI:
     runs-on: ubuntu-latest
-    container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest', options: '-e HOME=~' }
+    container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest' }
     steps:
     - run: |
-        sudo rmdir /github/home && sudo ln -s /home/ubuntu /github/home
-        sudo chown -R `id -u`:`id -g` /home/ubuntu .	;# actions/runner/issues/863
-        ls -al /__w /github /home
-    # sudo chown -R `id -u`:`id -g` /__w/ && echo HOME="$HOME" | sudo tee -a $GITHUB_ENV # actions/runner/issues/863
+        sudo chown -R `id -u`:`id -g` . ~	;# /github/home - actions/runner/issues/863
+        export HOME=$(env -i bash -c 'echo ~') && echo HOME=~ | sudo tee -a $GITHUB_ENV
+        sudo chmod -R 0777 /__w/_temp/		;# needed for GitHub cache action
+        ls -al /__w /github /home ~
     - run: id && pwd && env && ls -al . && ls -al ~
     - { uses: actions/checkout@v4.1.1,  with: { fetch-depth: 0 } } # Fix actions/checkout#290
