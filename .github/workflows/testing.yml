@@ -13,11 +13,12 @@ jobs:
 
   Focal-CI:
     runs-on: ubuntu-latest
-    container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest', options: '--user 1000:1000' }
+    container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest', options: '-e HOME=~' }
     steps:
     - run: |
+        sudo rmdir /github/home && sudo ln -s /home/ubuntu /github/home
+        sudo chown -R `id -u`:`id -g` /home/ubuntu .	;# actions/runner/issues/863
         ls -al /__w /github /home
-    - run: |
-        sudo chown -R `id -u`:`id -g` /__w/ && echo HOME="$HOME" | sudo tee -a $GITHUB_ENV # actions/runner/issues/863
+    # sudo chown -R `id -u`:`id -g` /__w/ && echo HOME="$HOME" | sudo tee -a $GITHUB_ENV # actions/runner/issues/863
     - run: id && pwd && env && ls -al . && ls -al ~
     - { uses: actions/checkout@v4.1.1,  with: { fetch-depth: 0 } } # Fix actions/checkout#290
