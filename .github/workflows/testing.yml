@@ -15,12 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest', options: '--user 1000:1000' }
     steps:
-    - run: id && pwd && env && ls -al
     - run: |
-        set -x
-        export HOME=$(env -i bash -c 'echo ~') # fix https://github.com/actions/runner/issues/863
-        echo HOME="$HOME" | sudo tee -a $GITHUB_ENV # fix the following steps
-        sudo chown -R `id -u`:`id -g` .
-    - run: id && pwd && env && ls -al
-    - run: mkdir cibuild && cd cibuild
+        sudo chown -R `id -u`:`id -g` /__w/ && echo HOME="$HOME" | sudo tee -a $GITHUB_ENV # actions/runner/issues/863
+    - run: id && pwd && env && ls -al . && ls -al ~
     - { uses: actions/checkout@v4.1.1,  with: { fetch-depth: 0 } } # Fix actions/checkout#290
