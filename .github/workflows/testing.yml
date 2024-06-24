@@ -13,13 +13,22 @@ jobs:
 
   Focal-CI:
     runs-on: ubuntu-latest
-    container: { image: 'ubuntu:22.04' }
+    container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest' }
     steps:
-    - name: 'Setup $HOME and $PWD'
+    - name: 'Fixup $USER and $HOME'
       run: |
-        sudo chown -R `id -u`:`id -g` . ~	;# fix $HOME, see actions/runner/issues/863
-        export HOME=$(env -i bash -c 'echo ~') && echo HOME=$HOME | sudo tee -a $GITHUB_ENV
-        ! [[ $RUNNER_TEMP =~ _ ]] || sudo chmod -R 01777 $RUNNER_TEMP	;# for GH action cache
+        set -x
+        id
+        pwd
+        ls -ald .
+        UGID=$(stat -c %u:%g .) && sudo usermod -o -u "${UGID%:*}" `id -u` && groupmod -o -g "${UGID#*:}" `id -g`
+        id
+        echo HOME=$HOME
+        ls -ald .
+        ls -ald ~
+        ls -ald $HOME
+        ls -ald $RUNNER_TEMP
+        env
     - name: 'Git Checkout'
       run: |
         git --version && git clone -q --recurse-submodules https://github.com/$GITHUB_REPOSITORY .
