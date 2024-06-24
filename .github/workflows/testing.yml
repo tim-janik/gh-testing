@@ -10,11 +10,6 @@ on:
 
 jobs:
 
-  Whoami:
-    runs-on: ubuntu-latest
-    steps:
-    - run: id && cat /etc/passwd /etc/group
-
   Focal-CI:
     runs-on: ubuntu-latest
     container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest' }
@@ -27,7 +22,6 @@ jobs:
         ls -ald .
         cat /etc/passwd
         cat /etc/group
-        UGID=$(stat -c %u:%g .) && sudo groupmod -o -g "${UGID#*:}" `id -ng` && sudo usermod -o -u "${UGID%:*}" `id -nu`
         id
         echo HOME=$HOME
         ls -ald .
