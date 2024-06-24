@@ -13,7 +13,7 @@ jobs:
 
   Focal-CI:
     runs-on: ubuntu-latest
-    container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest' }
+    container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest', options: --user '1000:1000' }
     steps:
     - run: id && pwd && env && ls -al
     - run: |
