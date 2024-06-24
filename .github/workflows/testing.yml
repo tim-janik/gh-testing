@@ -19,7 +19,7 @@ jobs:
       run: |
         sudo chown -R `id -u`:`id -g` . ~	;# fix $HOME, see actions/runner/issues/863
         export HOME=$(env -i bash -c 'echo ~') && echo HOME=$HOME | sudo tee -a $GITHUB_ENV
-        ! [[ $RUNNER_TEMP =~ _ ]] || sudo chmod -R 0777 $RUNNER_TEMP	;# for GH action cache
+        ! [[ $RUNNER_TEMP =~ _ ]] || sudo chmod -R 01777 $RUNNER_TEMP	;# for GH action cache
     - name: 'Git Checkout'
       run: |
         git --version && git clone -q --recurse-submodules https://github.com/$GITHUB_REPOSITORY .
