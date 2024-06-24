@@ -10,25 +10,13 @@ on:
 
 jobs:
 
+
   Focal-CI:
     runs-on: ubuntu-latest
-    env: { CICACHE: "/tmp/cicache", CITAG: "focal" }
+    container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest' }
     steps:
-    - uses: actions/checkout@v4
-      with: { fetch-depth: 0 }
-    - run: |
-        git fetch -f --tags # Fix actions/checkout annotated tag mess; actions/checkout#290
-        git submodule update --init --recursive
-    - uses: actions/cache@v3
-      with: { path: "/tmp/cicache", key: "cifocal-${{hashFiles ('misc/Dockerfile.focal')}}" }
-    - name: 'Prepare Docker Image'
-      run: |
-        misc/cirun -u 1000 misc/version.sh
-
-    - name: CI Tests
-      run: |
-        git describe
-        docker images
-        ls -al $CICACHE
-        du -hsc $CICACHE || true
-        du -hsc ~
+    - run: id && pwd && env && ls -al
+    - { uses: actions/checkout@v4.1.1,  with: { fetch-depth: 0 } } # Fix actions/checkout#290
+    - run: cd && pwd && env && ls -al
+    - run: ls -al /home/
+    - run: ls -al /home/*
