@@ -21,6 +21,8 @@ jobs:
         export HOME=$(env -i bash -c 'echo ~') # fix https://github.com/actions/runner/issues/863
         echo HOME="$HOME" | sudo tee -a $GITHUB_ENV # fix the following steps
         cd
+        pwd
+        cat $GITHUB_ENV
     - run: id && pwd && env && ls -al
     - run: mkdir cibuild && cd cibuild
     - { uses: actions/checkout@v4.1.1,  with: { fetch-depth: 0 } } # Fix actions/checkout#290
