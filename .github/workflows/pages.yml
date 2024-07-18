@@ -28,20 +28,21 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
-    container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest' }
+    container: { image: 'ghcr.io/tim-janik/anklang-ci:jammy-latest' }
     steps:
       - uses: actions/checkout@v4
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
-      - name: Build site/
-        run: |
-          mkdir -p site/
-          pandoc README.md -o site/index.html
+      - run: rm -rf * .[^.]* ..?*
+      - run: git clone --recurse-submodules https://github.com/tim-janik/anklang.git .
+      - run: echo -e 'prefix=/\n CC=clang \n CXX=clang++ \n CLANG_TIDY=clang-tidy ' > config-defaults.mk
+      - run: make mkdocs -j`nproc`
+      - run: ls -al out/site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./site/
+          path: ./out/site/
 
   # Deployment job
   deploy:
