@@ -5,22 +5,32 @@
 on:
   push:
     branches: ['master', 'trunk', 'wip/**']
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+*'
+    # tags: [ 'v[0-9]+.[0-9]+.[0-9]+*' ]
 
 jobs:
 
   Focal-CI:
     runs-on: ubuntu-latest
-    container: { image: 'ghcr.io/tim-janik/anklang-ci:focal-latest' }
+    container: { image: 'ghcr.io/tim-janik/anklang-ci:noble-latest', options: --user runner }
     steps:
+    - run: id
+    - run: pwd
+    - run: ls -al
     - { uses: actions/checkout@v4.1.1, with: { fetch-depth: 0, submodules: recursive, github-server-url: 'https://github.com' } }
-    - run: |
-        sed 's,git@github.com:,https://github.com/,' -i .git/config	; # fetch without ssh creds
-        git fetch -f --tags && git describe --always			; # Fix actions/checkout#290
+    - run: git fetch -f --tags		# Fix actions/checkout#290
+    - run: git describe --always --long
+    - run: pwd
+    - run: ls -al
+    - run: df -h
+    - run: cat /proc/mounts
+    - run: cat /proc/cpuinfo
+    - name: CI Tests
+      run: |
+        git describe
+        docker images
+        du -hsc ~
     - run: |
         git describe | tee git-describe && ls -al
         git -P log -1 --oneline
     - uses: actions/upload-artifact@v4
       with: { name: assets, path: git-describe }
-
