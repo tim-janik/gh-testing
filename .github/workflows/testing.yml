@@ -32,5 +32,19 @@ jobs:
     - run: |
         git describe | tee git-describe && ls -al
         git -P log -1 --oneline
+    - name: Ping IRC
+      if: ${{ always() && !env.ACT }}
+      run: |
+        env
+        echo 'GITHUB_EVENT_PATH: '"$GITHUB_EVENT_PATH"
+        echo '[${{ toJson(github) }},${{ toJson(job) }}]'
+        echo 'github.repository: ${{ github.repository }}'
+        echo 'github.ref: ${{ github.ref }}'
+        echo 'job.status: ${{ job.status }}'
+        echo 'github.event.head_commit ${{ github.event.head_commit }}'
+        echo 'github.event.head_commit.url ${{ github.event.head_commit.url }}'
+        echo 'github.actor: ${{ github.actor }}'
+        echo 'git branch --show-current: '"$(git branch --show-current)"
+        echo 'git log -1: '"$(git log -1 --format='%s')"
     - uses: actions/upload-artifact@v4
       with: { name: assets, path: git-describe }
