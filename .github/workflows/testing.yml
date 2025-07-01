@@ -31,6 +31,7 @@ jobs:
     - run: |
         git describe | tee git-describe && ls -al
         git -P log -1 --oneline
+    - run: false
     - uses: actions/upload-artifact@v4
       with: { name: assets, path: git-describe }
 
@@ -47,7 +48,6 @@ jobs:
         echo '${{ needs.Focal-CI.result }}'
         [[ ${{ needs.Focal-CI.result }}    =~ success|skipped ]]
     - name: Ping IRC
-      if: always()
+      if: ${{ always() && !env.ACT }}
       run: |
-        test -n "$ACT" ||
-          .github/workflows/ircbot.py -q -j "#Anklang2" -G -S '${{ job.status }}' "$(git log -1 --format=%s)"
+        .github/workflows/ircbot.py -q -j "#Anklang2" -G -S '${{ job.status }}' "$(git log -1 --format=%s)"
