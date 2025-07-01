@@ -37,6 +37,7 @@ jobs:
       run: |
         env
         echo 'GITHUB_EVENT_PATH: '"$GITHUB_EVENT_PATH"
+        ls -lR /github/
         echo '[${{ toJson(github) }},${{ toJson(job) }}]'
         echo 'github.repository: ${{ github.repository }}'
         echo 'github.ref: ${{ github.ref }}'
