@@ -49,3 +49,19 @@ jobs:
         echo 'git log -1: '"$(git log -1 --format='%s')"
     - uses: actions/upload-artifact@v4
       with: { name: assets, path: git-describe }
+
+  Ping-IRC:
+    if: always()
+    needs: [Focal-CI]
+    runs-on: ubuntu-latest
+    steps:
+    - { uses: actions/checkout@v4.1.1,  with: { fetch-depth: 0 } } # Fix actions/checkout#290
+    - run: git fetch -f --tags && git submodule update --init --recursive && git describe --long
+    - name: Check Jobs
+      run: |
+        echo '${{ needs.Focal-CI.result }}'
+        [[ ${{ needs.Focal-CI.result }}    =~ success|skipped ]]
+    - name: Ping IRC
+      if: ${{ always() && !env.ACT }}
+      run: |
+        .github/workflows/ircbot.py -q -j "#Anklang2" -G -S '${{ job.status }}' "$(git log -1 --format=%s)"
