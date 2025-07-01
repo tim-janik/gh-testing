@@ -178,16 +178,22 @@ if args.G:
 
 # Pick metadata and URL from github.*
 if github_event_data:
-  args.R = github_event_data.get ('repository', args.R)
-  args.U = github_event_data.get ('actor', args.U)
-  if  github_event_data.get ('ref', None):
+  R = github_event_data.get ('repository', {}).get ('full_name', '')
+  args.R = R if R else args.R
+  U = github_event_data.get ('pusher', {}).get ('name', '')
+  args.U = U if U else args.U
+  if github_event_data.get ('ref', None):
     args.D = github_event_data.get ('ref')
     args.D = re.sub (r'^refs/(heads/)?', '', args.D)
-  URL = github_event_data.get ('event', {}).get ('head_commit', {}).get ('url', '')
+  print ("REPOSITORY", args.R, file = sys.stderr)
+  print ("NAME", args.U, file = sys.stderr)
+  print ("DEPARTMENT", args.D, file = sys.stderr)
+  URL = github_event_data.get ('head_commit', {}).get ('url', '')
+  print ("URL", URL, file = sys.stderr)
   if URL:
-    if args.message:
-      args.message += [ '-' ]
+    if args.message: args.message += [ '-' ]
     args.message += [ URL ]
+    # print ("MESSAGE", repr (args.message), file = sys.stderr)
 
 if args.message and not args.quiet:
   print (format_msg (args, 1))
