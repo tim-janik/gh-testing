@@ -188,7 +188,6 @@ if github_event_data:
     if args.message:
       args.message += [ '-' ]
     args.message += [ URL ]
-  sys.exit (0)
 
 if args.message and not args.quiet:
   print (format_msg (args, 1))
