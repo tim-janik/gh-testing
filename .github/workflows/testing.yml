@@ -31,7 +31,6 @@ jobs:
     - run: |
         git describe | tee git-describe && ls -al
         git -P log -1 --oneline
-    - run: false
     - uses: actions/upload-artifact@v4
       with: { name: assets, path: git-describe }
 
@@ -42,7 +41,6 @@ jobs:
     steps:
     - { uses: actions/checkout@v4.1.1,  with: { fetch-depth: 0 } } # Fix actions/checkout#290
     - run: git fetch -f --tags && git submodule update --init --recursive && git describe --long
-    - run: cat "$GITHUB_EVENT_PATH"
     - name: Check Jobs
       run: |
         echo '${{ needs.Focal-CI.result }}'
