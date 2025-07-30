@@ -42,5 +42,6 @@ jobs:
     - run: git fetch -f --tags && git describe --long # Fix actions/checkout#290
     - name: Install pandoc
       run: |
-        cd /tmp && wget -c https://github.com/jgm/pandoc/releases/download/3.7.0.2/pandoc-3.7.0.2-1-amd64.deb && apt install ./pandoc-3.7.0.2-1-amd64.deb
+        cd /tmp && wget -q -c https://github.com/jgm/pandoc/releases/download/3.7.0.2/pandoc-3.7.0.2-1-amd64.deb
+        sudo apt install ./pandoc-3.7.0.2-1-amd64.deb
         pandoc --version
