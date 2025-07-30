@@ -24,10 +24,6 @@ jobs:
     - run: df -h
     - run: cat /proc/mounts
     - run: cat /proc/cpuinfo
-    - name: Install pandoc
-      run: |
-        cd /tmp && wget -c https://github.com/jgm/pandoc/releases/download/3.7.0.2/pandoc-3.7.0.2-1-amd64.deb && apt install ./pandoc-3.7.0.2-1-amd64.deb
-        pandoc --version
     - name: CI Tests
       run: |
         git describe
@@ -38,3 +34,13 @@ jobs:
         git -P log -1 --oneline
     - uses: actions/upload-artifact@v4
       with: { name: assets, path: git-describe }
+
+  TestPandoc:
+    runs-on: ubuntu-24.04
+    steps:
+    - { uses: actions/checkout@v4.1.1, with: { fetch-depth: 0, submodules: recursive, github-server-url: 'https://github.com' } }
+    - run: git fetch -f --tags && git describe --long # Fix actions/checkout#290
+    - name: Install pandoc
+      run: |
+        cd /tmp && wget -c https://github.com/jgm/pandoc/releases/download/3.7.0.2/pandoc-3.7.0.2-1-amd64.deb && apt install ./pandoc-3.7.0.2-1-amd64.deb
+        pandoc --version
