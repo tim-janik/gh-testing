@@ -1,0 +1,30 @@
+# Linting: xclip -sel c < .github/workflows/awk-version-freebsd.yml # https://rhysd.github.io/actionlint/
+
+name: Test AWK Version on FreeBSD
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  awk-version:
+    runs-on: macos-latest  # Required by vmactions/freebsd-vm
+    name: AWK version on FreeBSD
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Run on FreeBSD
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.0'
+          usesh: true
+          run: |
+            echo "AWK path: $(command -v awk)"
+            echo "AWK version attempt with -W version:"
+            awk -W version || echo "awk -W version not supported"
+
+            echo
+            echo "Testing fallback detection:"
+            awk 'BEGIN { print "Maybe version: " VERSION }'
+
