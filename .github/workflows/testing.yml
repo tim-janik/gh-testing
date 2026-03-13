@@ -21,13 +21,13 @@ jobs:
     - run: git fetch -f --tags		# Fix actions/checkout#290
     - run: git describe --always --long
     - run: docker pull $IMAGE
+    - run: docker run --rm -v "${{ github.workspace }}:/work" -w /work $IMAGE sudo chown 1000:1000 -R .
 
     - name: Run CI steps inside the container image
       run: |
           # run the same image you used previously inside the VM
           # mount the workspace so files created inside the container are visible to the runner
           docker run --rm \
-            --user "$(id -u):$(id -g)" \
             -v "${{ github.workspace }}:/work" \
             -w /work \
             $IMAGE \
