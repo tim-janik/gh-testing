@@ -11,7 +11,6 @@ jobs:
 
   Focal-CI:
     runs-on: ubuntu-latest
-    container: { image: 'ghcr.io/tim-janik/anklang-ci:noble-latest', options: --user runner }
     steps:
     - run: id
     - run: pwd
@@ -19,19 +18,28 @@ jobs:
     - { uses: actions/checkout@v4.1.1, with: { fetch-depth: 0, submodules: recursive, github-server-url: 'https://github.com' } }
     - run: git fetch -f --tags		# Fix actions/checkout#290
     - run: git describe --always --long
-    - run: pwd
-    - run: ls -al
-    - run: df -h
-    - run: cat /proc/mounts
-    - run: cat /proc/cpuinfo
-    - name: CI Tests
+
+    - name: Run CI steps inside the container image
       run: |
-        git describe
-        docker images
-        du -hsc ~
-    - run: |
-        git describe | tee git-describe && ls -al
-        git -P log -1 --oneline
+          # run the same image you used previously inside the VM
+          # mount the workspace so files created inside the container are visible to the runner
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "${{ github.workspace }}:/work" \
+            -w /work \
+            ghcr.io/tim-janik/anklang-ci:noble-latest \
+            bash -lc "\
+              set -euo pipefail; \
+              echo 'Inside container:'; \
+              pwd; ls -al; \
+              df -h; cat /proc/mounts; cat /proc/cpuinfo \
+              git describe || true; \
+              echo 'Docker images visible inside container:'; docker images || true; \
+              du -hsc ~ || true; \
+              git describe | tee git-describe || true; \
+              ls -al; \
+              git -P log -1 --oneline || true \
+            "
     - uses: actions/upload-artifact@v4
       with: { name: assets, path: git-describe }
 
