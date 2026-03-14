@@ -17,18 +17,7 @@ jobs:
     - { uses: actions/checkout@v4.1.1, with: { fetch-depth: 0, submodules: recursive, github-server-url: 'https://github.com' } }
     - run: git fetch -f --tags && git describe --always --long	# Fix actions/checkout#290
 
-    - id: imagedigest
-      run: echo "digest=$(docker manifest inspect $IMAGE --verbose | jq -r '.Descriptor.digest')" >> "$GITHUB_OUTPUT"
-    - id: cache-docker
-      uses: actions/cache@v4
-      with: { path: /tmp/docker-image.tar, key: 'docker-image-${{ env.IMAGE }}-${{ steps.imagedigest.outputs.digest }}' }
-    - if: steps.cache-docker.outputs.cache-hit != 'true'
-      run: docker pull $IMAGE
-    - if: steps.cache-docker.outputs.cache-hit != 'true'
-      run: docker save $IMAGE -o /tmp/docker-image.tar
-    - if: steps.cache-docker.outputs.cache-hit == 'true'
-      run: docker load -i /tmp/docker-image.tar
-
+    - run: docker pull $IMAGE
     - run: docker run --rm -v "${{ github.workspace }}:/work" -w /work $IMAGE sudo chown 1000:1000 -R .
 
     - name: Run CI steps inside the container image
