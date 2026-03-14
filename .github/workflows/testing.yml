@@ -23,6 +23,16 @@ jobs:
     - run: docker pull $IMAGE
     - run: docker run --rm -v "${{ github.workspace }}:/work" -w /work $IMAGE sudo chown 1000:1000 -R .
 
+    - id: digest
+      run: echo "digest=$(docker manifest inspect $IMAGE --verbose | jq -r '.Descriptor.digest')" >> "$GITHUB_OUTPUT"
+    - id: cache-docker
+      uses: actions/cache@v4
+      with: { path: /tmp/docker-image.tar, key: 'docker-image-${{ env.IMAGE }}-${{ steps.digest.outputs.digest }}' }
+    - if: steps.cache-docker.outputs.cache-hit == 'true'
+      run: docker load -i /tmp/docker-image.tar
+    - if: steps.cache-docker.outputs.cache-hit != 'true'
+      run: docker pull $IMAGE && docker save $IMAGE -o /tmp/docker-image.tar
+
     - name: Run CI steps inside the container image
       run: |
           # run the same image you used previously inside the VM
