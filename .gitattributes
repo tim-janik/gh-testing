@@ -1,0 +1,2 @@
+Makefile.mk export-subst
+.git* export-ignore
