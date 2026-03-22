@@ -95,8 +95,10 @@ release:
 	&& gh release create -F artifacts/.notes --draft --target="$(HEADSHA)" v$(TAG) artifacts/*	< /dev/null
 	$Q test -n "$${FORCE-}" \
 	|| { read -i y -p "Push and publish \`HEAD\` tagged as $(PKG) v$(TAG) ? [y/N] " Y && test "y$$Y" == yy ; }
-	$Q git push origin "v$(TAG)"
-	$Q gh release edit "v$(TAG)" --verify-tag --draft=false
+	$Q echo '  PUSH      ' "v$(TAG)@origin" \
+	&& git push origin "v$(TAG)"
+	$Q echo '  PUBLISH   ' $$(gh release view "v$(TAG)" --json url | grep -oE 'https://[^"]+') \
+	&& gh release edit "v$(TAG)" --verify-tag --draft=false
 	$Q echo "TODO: pkg --help '>>' wiki/cli-help.md"
 
 # == clean ==

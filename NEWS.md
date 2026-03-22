@@ -1,6 +1,6 @@
-## Package 0.0.2:
+## Package 0.0.3:
 
-* Good fixes
+* Release fixes
 
 ## Package 0.0.1-old:
 
