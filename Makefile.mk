@@ -69,37 +69,9 @@ distcheck:
 	&& make PREFIX=$$T/inst uninstall \
 	&& cd / && rm -r "$$T"
 	$Q echo "Archive ready: artifacts/$(distname).tar.zst" | sed '1h; 1s/./=/g; 1p; 1x; $$p; $$x'
-
 release:
-	$(eval PKG != git config --get remote.origin.url | xargs -I{} basename {} .git)
-	$(eval TAG != sed -nr '1{ /^\#\#/{ s/.*\bv?([0-9]+\.[0-9]+\.[0-9]+[_a-z.0-9+-]*)\b.*/\1/; tPRNT; q; :PRNT p } }' NEWS.md)
-	$(eval HEADSHA != git rev-parse HEAD)
-	$(eval VERSION := -unused- )
-	$Q echo '  MAKE      ' $@
-	$Q echo '  TAG       ' "HEAD as v$(TAG) # $(HEADSHA)"
-	$Q ! git ls-remote --exit-code origin "refs/tags/v$(TAG)" 2>/dev/null \
-	|| { echo "ERROR: tag v$(TAG) already exists on remote" ; exit 1 ; }
-	$Q test -n "$${FORCE-}" && git tag -d "v$(TAG)" >/dev/null 2>&1 || :
-	$Q git tag -m "$(PKG) $(TAG)" "v$(TAG)" "$(HEADSHA)"
-	$Q echo '  DISTCHECK ' '> artifacts/.distcheck.log' \
-	&& rm -rf artifacts/ && mkdir -p artifacts/ \
-	&& ( make clean \
-	&&   docker run -ti --rm -v "$$PWD:/$(PKG)" -w "/$(PKG)" ghcr.io/tim-janik/anklang-ci:ci-latest \
-		make distcheck ) > artifacts/.distcheck.log 2>&1 # build assets
-	$Q echo '  MK-NOTES  ' artifacts/.notes \
-	&& sed -rn '/^##? / { p; :BEGIN ; n ; /^##? /q ; p ; bBEGIN ; }' NEWS.md > artifacts/.notes
-	$Q echo '  CHECK     ' "HEAD @ origin" \
-	&& git branch -r --contains "$(HEADSHA)" | grep -qE ' origin/' \
-	|| { echo "ERROR: HEAD diverged from origin/" ; exit 1 ; }
-	$Q echo '  UPLOAD    ' "Draft release $(TAG)" \
-	&& gh release create -F artifacts/.notes --draft --target="$(HEADSHA)" v$(TAG) artifacts/*	< /dev/null
-	$Q test -n "$${FORCE-}" \
-	|| { read -i y -p "Push and publish \`HEAD\` tagged as $(PKG) v$(TAG) ? [y/N] " Y && test "y$$Y" == yy ; }
-	$Q echo '  PUSH      ' "v$(TAG)@origin" \
-	&& git push origin "v$(TAG)"
-	$Q echo '  PUBLISH   ' $$(gh release view "v$(TAG)" --json url | grep -oE 'https://[^"]+') \
-	&& gh release edit "v$(TAG)" --verify-tag --draft=false
-	$Q echo "TODO: pkg --help '>>' wiki/cli-help.md"
+	$(QGEN)
+	$Q ./mk-release.sh
 
 # == clean ==
 clean:
